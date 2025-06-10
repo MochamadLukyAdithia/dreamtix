@@ -1,27 +1,22 @@
-import 'dart:ffi';
-
 class EventModel {
-  int? id;
-  String? title;
-  String? description;
-  String? image;
-  double? price;
-  int? stock;
+  final String name_event;
+  final String waktu;
+  final String artis;
+  final String image;
 
-  EventModel(
-      {this.id,
-      this.title,
-      this.description,
-      this.image,
-      this.price,
-      this.stock});
+  EventModel({
+    required this.name_event,
+    required this.waktu,
+    required this.artis,
+    required this.image,
+  });
 
-  EventModel.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    title = json["title"];
-    description = json["description"];
-    image = json["image"];
-    price = json["price"];
-    stock = json["stock"];
+  factory EventModel.fromMap(Map<String, dynamic> map) {
+    return EventModel(
+      name_event: map['name_event'] ?? '',
+      waktu: map['waktu'] ?? '',
+      artis: map['artis'] ?? '',
+      image: map['image'] ?? '',
+    );
   }
 }
