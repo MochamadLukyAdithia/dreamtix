@@ -1,4 +1,5 @@
 import 'package:dreamtix/features/profile/controller/ProfileController.dart';
+import 'package:dreamtix/features/profile/view/ubah_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,51 +10,53 @@ class ProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0E21),
-      appBar: AppBar(
-        title: const Text("Profil", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF0B0E21),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                const CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.orange,
-                  child: Text("ML", style: TextStyle(color: Colors.white)),
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Colors.orange,
+                      child: Text("ML", style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 12),
+                    Obx(() => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(controller.userName.value,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                            Text(controller.email.value,
+                                style: const TextStyle(color: Colors.white70)),
+                          ],
+                        )),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Obx(() => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(controller.userName.value,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
-                        Text(controller.email.value,
-                            style: const TextStyle(color: Colors.white70)),
-                      ],
-                    )),
+                const SizedBox(height: 30),
+                buildSection("Akun", [
+                  buildItem("Ubah Profil", () => Get.toNamed("ubah-profile")),
+                  buildItem(
+                      "Ubah Kata Sandi", () => Get.toNamed("ubah-password")),
+                ]),
+                buildSection("Dukungan", [
+                  buildItem("Customer Service", () => Get.toNamed("help")),
+                ]),
+                buildSection("Tentang Kami", [
+                  buildItem("Tentang DreamTix", () => Get.toNamed("about")),
+                  buildItem("Syarat Dan Ketentuan", () => Get.toNamed("terms")),
+                ]),
+                buildSection("Lainya", [
+                  buildItem("Cara Membeli Tiket", () => Get.toNamed("membeli")),
+                  buildItem("Logout", () => Get.toNamed("login")),
+                ]),
               ],
             ),
-            const SizedBox(height: 30),
-            buildSection("Akun", [
-              buildItem("Ubah Profil"),
-              buildItem("Ubah Kata Sandi"),
-            ]),
-            buildSection("Dukungan", [
-              buildItem("Customer Srrvice"), // Typo disamakan
-            ]),
-            buildSection("Tentang Kami", [
-              buildItem("Tentang DreamTix"),
-              buildItem("Syarat Dan Ketentuan"),
-            ]),
-            buildSection("Lainya", [
-              buildItem("Cara Membeli Tiket"),
-            ]),
-          ],
+          ),
         ),
       ),
     );
@@ -71,14 +74,12 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget buildItem(String text) {
+  Widget buildItem(String text, VoidCallback onTap) {
     return ListTile(
       title: Text(text, style: const TextStyle(color: Colors.white)),
       trailing:
           const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
-      onTap: () {
-        
-      },
+      onTap: onTap,
     );
   }
 }

@@ -8,7 +8,7 @@ class SplashScreen extends StatelessWidget {
   final Color bgColor = const Color(0xFF0D0B29);
   @override
   Widget build(BuildContext context) {
-    Timer(Duration(seconds: 10), () {
+    Timer(Duration(seconds: 3), () {
       Get.offNamed(AppRoute.login);
     });
 

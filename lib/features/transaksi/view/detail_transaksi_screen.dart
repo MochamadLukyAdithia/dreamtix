@@ -1,8 +1,9 @@
 import 'package:dreamtix/features/transaksi/model/TransaksiModel.dart';
+
 import 'package:flutter/material.dart';
 
 class TransactionDetailView extends StatelessWidget {
-  final Transaction transaction;
+  final TransaksiModel transaction;
 
   const TransactionDetailView({super.key, required this.transaction});
 
@@ -20,25 +21,38 @@ class TransactionDetailView extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(transaction.imageUrl,
-                  width: double.infinity, height: 150, fit: BoxFit.cover),
+              child: Image.network(
+                transaction.imageUrl,
+                width: double.infinity,
+                height: 150,
+                fit: BoxFit.cover,
+              ),
             ),
             const SizedBox(height: 16),
-            Text(transaction.title,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
+            Text(
+              transaction.title,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 6),
-            Text(transaction.status,
-                style: const TextStyle(color: Colors.blueAccent, fontSize: 14)),
+            Text(
+              transaction.status,
+              style: const TextStyle(color: Colors.blueAccent, fontSize: 14),
+            ),
             const Divider(color: Colors.white38, height: 30),
             buildRow("Tanggal Transaksi", transaction.date),
-            buildRow("ID Transaksi", transaction.transactionId!),
-            buildRow("Total Pembayaran", transaction.total!),
+            buildRow("ID Transaksi", transaction.id),
+            buildRow("Metode Pembayaran", transaction.metode),
+            buildRow("Jumlah Tiket",
+                transaction.detailPemesanan[0].quantity.toString()),
+            buildRow("Total Pembayaran",
+                "Rp ${transaction.detailPemesanan[0].total}"),
             const Spacer(),
             SizedBox(
               width: double.infinity,
@@ -46,7 +60,7 @@ class TransactionDetailView extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: Text(
+                child: const Text(
                   "Kembali",
                   style: TextStyle(color: Colors.white),
                 ),

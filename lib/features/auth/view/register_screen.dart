@@ -11,7 +11,7 @@ class RegisterScreen extends StatelessWidget {
   final day = '1'.obs;
   final month = 'Januari'.obs;
   final year = '2000'.obs;
-
+  final authController = Get.find<AuthController>();
   final List<String> days = List.generate(31, (i) => (i + 1).toString());
   final List<String> months = [
     'Januari',
@@ -27,7 +27,7 @@ class RegisterScreen extends StatelessWidget {
     'November',
     'Desember',
   ];
-  final List<String> years = List.generate(30, (i) => (1995 + i).toString());
+  final List<String> years = List.generate(30, (i) => (1945 + i).toString());
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +38,7 @@ class RegisterScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
                 "Daftar Akun",
@@ -59,15 +60,15 @@ class RegisterScreen extends StatelessWidget {
               _buildInput(emailC, "Masukkan Email"),
               const SizedBox(height: 16),
               _buildInput(nameC, "Masukkan Nama Lengkap"),
-              const SizedBox(height: 16),
-              _genderSelection(),
+              // const SizedBox(height: 16),
+              // _genderSelection(),
               const SizedBox(height: 16),
               const Text(
                 "Tanggal Lahir",
                 style: TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 8),
-              _birthDateDropdowns(),
+              // const SizedBox(height: 8),
+              // _birthDateDropdowns(),
               const SizedBox(height: 16),
               Obx(() => TextField(
                     controller: passwordC,
@@ -179,38 +180,39 @@ class RegisterScreen extends StatelessWidget {
         ));
   }
 
-  Widget _birthDateDropdowns() {
-    return Obx(() => Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(child: _dropdownField(days, day)),
-            const SizedBox(width: 12),
-            Expanded(child: _dropdownField(months, month)),
-            const SizedBox(width: 12),
-            Expanded(child: _dropdownField(years, year)),
-          ],
-        ));
-  }
+//   Widget _birthDateDropdowns() {
+//     return Obx(() => Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//           children: [
+//             Expanded(child: _dropdownField(days, day)),
+//             const SizedBox(width: 12),
+//             Expanded(child: _dropdownField(months, month)),
+//             const SizedBox(width: 12),
+//             Expanded(child: _dropdownField(years, year)),
+//           ],
+//         ));
+//   }
 
-  Widget _dropdownField(List<String> items, RxString selected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B1A47),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButton<String>(
-        isExpanded: true,
-        value: selected.value,
-        dropdownColor: const Color(0xFF1B1A47),
-        style: const TextStyle(color: Colors.white),
-        underline: const SizedBox(),
-        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-        items: items
-            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-            .toList(),
-        onChanged: (val) => selected.value = val!,
-      ),
-    );
-  }
+//   Widget _dropdownField(List<String> items, RxString selected) {
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 12),
+//       decoration: BoxDecoration(
+//         color: const Color(0xFF1B1A47),
+//         borderRadius: BorderRadius.circular(12),
+//       ),
+//       child: DropdownButton<String>(
+//         isExpanded: true,
+//         value: selected.value,
+//         dropdownColor: const Color(0xFF1B1A47),
+//         style: const TextStyle(color: Colors.white),
+//         underline: const SizedBox(),
+//         icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+//         items: items
+//             .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+//             .toList(),
+//         onChanged: (val) => selected.value = val!,
+//       ),
+//     );
+//   }
+// }
 }

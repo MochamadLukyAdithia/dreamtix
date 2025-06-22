@@ -1,12 +1,38 @@
 import 'package:dreamtix/features/auth/controller/AuthController.dart';
 import 'package:dreamtix/features/auth/model/UserModel.dart';
+import 'package:dreamtix/features/auth/view/rubah_password_screen.dart';
 import 'package:dreamtix/routes/route.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final usernameC = TextEditingController();
   final passwordC = TextEditingController();
+  String? usernameError;
+  String? passwordError;
+
+  final authController = Get.find<AuthController>();
+
+  @override
+  void dispose() {
+    usernameC.dispose();
+    passwordC.dispose();
+    super.dispose();
+  }
+
+  void validateInputs() {
+    setState(() {
+      usernameError =
+          usernameC.text.isEmpty ? 'Username tidak boleh kosong' : null;
+      passwordError =
+          passwordC.text.isEmpty ? 'Password tidak boleh kosong' : null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +46,7 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo atau Title
+                  // Logo
                   Container(
                     margin: EdgeInsets.only(bottom: 50),
                     child: Column(
@@ -56,7 +82,11 @@ class LoginScreen extends StatelessWidget {
                     controller: usernameC,
                     style: TextStyle(color: Colors.white),
                     decoration: _inputDecoration(
-                        "Masukkan Username", Icons.person_outline),
+                      "Masukkan Username",
+                      Icons.person_outline,
+                      errorText: usernameError,
+                    ),
+                    // Remove onChanged validation
                   ),
                   SizedBox(height: 20),
 
@@ -66,8 +96,10 @@ class LoginScreen extends StatelessWidget {
                         obscureText: !authController.isPasswordVisible.value,
                         style: TextStyle(color: Colors.white),
                         decoration: _inputDecoration(
-                                "Masukkan Password", Icons.lock_outline)
-                            .copyWith(
+                          "Masukkan Password",
+                          Icons.lock_outline,
+                          errorText: passwordError,
+                        ).copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
                               authController.isPasswordVisible.value
@@ -78,35 +110,56 @@ class LoginScreen extends StatelessWidget {
                             onPressed: authController.togglePassword,
                           ),
                         ),
+                        // Remove onChanged validation
                       )),
 
-                  // Forgot Password
+                  // Forgot Password & Change Password Row
                   Container(
                     width: double.infinity,
                     margin: EdgeInsets.only(top: 12),
-                    child: TextButton(
-                      onPressed: () {
-                        // Navigate to forgot password screen
-                        // Get.toNamed(AppRoute.forgotPassword);
-                        Get.snackbar(
-                          'Info',
-                          'Fitur lupa password akan segera tersedia',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.blue.withOpacity(0.8),
-                          colorText: Colors.white,
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        alignment: Alignment.centerRight,
-                        padding: EdgeInsets.zero,
-                      ),
-                      child: Text(
-                        'Lupa Password?',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 14,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            // Navigate to Change Password
+                            Get.to(() => ChangePasswordScreen());
+                          },
+                          style: TextButton.styleFrom(
+                            alignment: Alignment.centerLeft,
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Ubah Password',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () {
+                            Get.snackbar(
+                              'Info',
+                              'Fitur lupa password akan segera tersedia',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.blue.withOpacity(0.8),
+                              colorText: Colors.white,
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Lupa Password?',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -116,23 +169,20 @@ class LoginScreen extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (usernameC.text.isEmpty || passwordC.text.isEmpty) {
-                          Get.snackbar(
-                            'Error',
-                            'Username dan Password tidak boleh kosong',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.red.withOpacity(0.8),
-                            colorText: Colors.white,
+                      onPressed: () async {
+                        // Validate inputs only when login button is pressed
+                        validateInputs();
+                        
+                        if (usernameError == null && passwordError == null) {
+                          Usermodel user = Usermodel(
+                            username: usernameC.text,
+                            password: passwordC.text,
                           );
-                          return;
+                          print("Username: ${user.username}");
+                          print("Password: ${user.password}");
+
+                          await AuthController.login(user);
                         }
-
-                        Usermodel user = Usermodel(
-                            username: usernameC.text.toString(),
-                            password: passwordC.text.toString());
-
-                        authController.login(user);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
@@ -188,7 +238,8 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon) {
+  InputDecoration _inputDecoration(String hint, IconData icon,
+      {String? errorText}) {
     return InputDecoration(
       filled: true,
       fillColor: Color(0xFF1B1A47),
@@ -203,6 +254,16 @@ class LoginScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.red, width: 2),
       ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.red, width: 2),
+      ),
+      errorText: errorText,
+      errorStyle: TextStyle(color: Colors.red),
       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }

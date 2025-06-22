@@ -3,7 +3,7 @@ import 'package:dreamtix/features/profile/view/profile_screen.dart';
 import 'package:dreamtix/features/transaksi/view/transaksi_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:dreamtix/features/home/controller/HomeController.dart';
+import 'package:dreamtix/features/home/controller/HomeController.dart';   
 
 class MainScreen extends StatelessWidget {
   final HomeController controller = Get.put(HomeController());

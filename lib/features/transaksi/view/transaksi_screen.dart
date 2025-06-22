@@ -18,100 +18,127 @@ class TransactionView extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              onChanged: (value) => controller.searchQuery.value = value,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Cari Nama Event",
-                hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.search, color: Colors.red),
-                filled: true,
-                fillColor: const Color(0xFF1C1F2E),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+
+          if (controller.filteredTransactions.isEmpty) {
+            return const Center(
+              child: Text(
+                "Belum ada transaksi",
+                style: TextStyle(color: Colors.white),
               ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Obx(() => ListView.builder(
-                    itemCount: controller.filteredTransactions.length,
-                    itemBuilder: (context, index) {
-                      final tx = controller.filteredTransactions[index];
-                      return Card(
-                        color: Colors.white,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Image.network(tx.imageUrl,
-                                      width: 80, height: 50, fit: BoxFit.cover),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(tx.title,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14)),
-                                        Text(tx.status,
-                                            style: const TextStyle(
-                                                color: Colors.blue,
-                                                fontSize: 12)),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+            );
+          }
+
+          return ListView.builder(
+            itemCount: controller.filteredTransactions.length,
+            itemBuilder: (context, index) {
+              final tx = controller.filteredTransactions[index];
+              return Card(
+                color: Colors.white,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              tx.imageUrl,
+                              width: 80,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                width: 80,
+                                height: 50,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.image_not_supported),
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(Icons.calendar_today, size: 14),
-                                  const SizedBox(width: 6),
-                                  Text("Tanggal Transaksi",
-                                      style: TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                              Text(tx.date,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  tx.title,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 12)),
-                              const SizedBox(height: 10),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Get.to(() =>
-                                        TransactionDetailView(transaction: tx));
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red),
-                                  child: const Text(
-                                    "Lihat Detail",
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 14),
-                                  ),
+                                      fontSize: 14),
                                 ),
-                              )
-                            ],
+                                Text(
+                                  "Metode: ${tx.metode}",
+                                  style: const TextStyle(
+                                      color: Colors.black87, fontSize: 12),
+                                ),
+                                Text(
+                                  "Status: ${tx.status}",
+                                  style: TextStyle(
+                                      color: tx.status == "LUNAS"
+                                          ? Colors.green
+                                          : Colors.orange,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today, size: 14),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Tanggal Transaksi",
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        tx.date,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Get.to(() =>
+                                TransactionDetailView(transaction: tx));
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8))),
+                          child: const Text(
+                            "Lihat Detail",
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 14),
                           ),
                         ),
-                      );
-                    },
-                  )),
-            ),
-          ],
-        ),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }),
       ),
     );
   }

@@ -1,206 +1,354 @@
-import 'package:dreamtix/core/theme/network.dart';
+import 'package:dreamtix/features/home/controller/HomeTabController.dart';
 import 'package:dreamtix/features/home/model/event_model.dart';
 import 'package:dreamtix/features/home/view/detail_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'dart:async';
-import 'package:dreamtix/features/home/controller/HomeController.dart';
 import 'package:intl/intl.dart';
 
-class HomeTab extends StatefulWidget {
+class HomeTab extends GetView<HomeTabController> {
   @override
-  State<HomeTab> createState() => _HomeTabState();
+  Widget build(BuildContext context) {
+    Get.put(HomeTabController());
+
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: controller.refreshData,
+        color: Colors.red,
+        child: ListView(
+          padding: EdgeInsets.all(16),
+          children: [
+            SearchBar(),
+            SizedBox(height: 16),
+            BannerSection(),
+            SizedBox(height: 24),
+            EventSection(),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _HomeTabState extends State<HomeTab> {
-  final controller = Get.find<HomeController>();
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-  Timer? _bannerTimer;
-  late Future<List<EventModel>> _eventsFuture;
-
+// Search Bar Widget
+class SearchBar extends GetView<HomeTabController> {
   @override
-  void initState() {
-    super.initState();
-
-    // Ambil data event dari controller
-    _eventsFuture = controller.getEvents();
-
-    // Start banner auto-scroll timer
-    _startBannerTimer();
+  Widget build(BuildContext context) {
+    return TextField(
+      onChanged: controller.updateSearch,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: "Cari berdasarkan artis, acara atau nama tempat",
+        hintStyle: TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: Color(0xFF1B1A47),
+        suffixIcon: Icon(Icons.search, color: Colors.white),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+    );
   }
+}
 
-  void _startBannerTimer() {
-    _bannerTimer = Timer.periodic(Duration(seconds: 3), (timer) {
-      if (_pageController.hasClients && mounted) {
-        _currentPage =
-            (_currentPage + 1) % NetworkImageAssets.bannerImages.length;
-        _pageController.animateToPage(
-          _currentPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
+// Banner Section Widget
+class BannerSection extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        BannerCarousel(),
+        SizedBox(height: 8),
+        BannerIndicators(),
+      ],
+    );
+  }
+}
+
+// Banner Carousel Widget
+class BannerCarousel extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: Obx(() {
+        if (controller.isLoadingBanners.value) {
+          return Center(child: CircularProgressIndicator(color: Colors.red));
+        }
+
+        if (controller.hasErrorBanners.value) {
+          return BannerErrorWidget();
+        }
+
+        if (controller.bannerImages.isEmpty) {
+          return BannerEmptyWidget();
+        }
+
+        return PageView.builder(
+          controller: controller.pageController,
+          itemCount: controller.bannerImages.length,
+          onPageChanged: controller.onPageChanged,
+          itemBuilder: (_, index) {
+            return BannerItem(imageUrl: controller.bannerImages[index]);
+          },
         );
-      }
-    });
+      }),
+    );
   }
+}
 
-  @override
-  void dispose() {
-    _bannerTimer?.cancel();
-    _pageController.dispose();
-    super.dispose();
-  }
+// Banner Item Widget
+class BannerItem extends StatelessWidget {
+  final String imageUrl;
+
+  const BannerItem({Key? key, required this.imageUrl}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          // Search bar
-          TextField(
-            onChanged: controller.updateSearch,
-            style: TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: "Cari berdasarkan artis, acara atau nama tempat",
-              hintStyle: TextStyle(color: Colors.grey),
-              filled: true,
-              fillColor: Color(0xFF1B1A47),
-              suffixIcon: Icon(Icons.search, color: Colors.white),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
+          onError: (error, stackTrace) {
+            // Handle image loading error
+          },
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.black.withOpacity(0.1),
+        ),
+      ),
+    );
+  }
+}
+
+// Banner Indicators Widget
+class BannerIndicators extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.bannerImages.isEmpty) return SizedBox.shrink();
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          controller.bannerImages.length,
+          (index) => Container(
+            width: 8,
+            height: 8,
+            margin: EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: controller.currentPage.value == index
+                  ? Colors.red
+                  : Colors.grey,
             ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+// Banner Error Widget
+class BannerErrorWidget extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xFF1B1A47),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 32),
+            SizedBox(height: 8),
+            Text(
+              "Gagal memuat banner",
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+            SizedBox(height: 8),
+            TextButton(
+              onPressed: controller.retryLoadBanners,
+              child: Text("Coba Lagi", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Banner Empty Widget
+class BannerEmptyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xFF1B1A47),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image_not_supported, color: Colors.grey, size: 32),
+            SizedBox(height: 8),
+            Text(
+              "Tidak ada banner tersedia",
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Event Section Widget
+class EventSection extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        EventSectionHeader(),
+        SizedBox(height: 12),
+        EventList(),
+      ],
+    );
+  }
+}
+
+// Event Section Header Widget
+class EventSectionHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "Event",
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+}
+
+// Event List Widget
+class EventList extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isLoadingEvents.value) {
+        return EventLoadingWidget();
+      }
+
+      if (controller.hasErrorEvents.value) {
+        return EventErrorWidget();
+      }
+
+      if (controller.filteredEvents.isEmpty) {
+        return EventEmptyWidget();
+      }
+
+      return Column(
+        children: controller.filteredEvents
+            .map((event) => EventCard(event: event))
+            .toList(),
+      );
+    });
+  }
+}
+
+// Event Loading Widget
+class EventLoadingWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: CircularProgressIndicator(color: Colors.red),
+      ),
+    );
+  }
+}
+
+// Event Error Widget
+class EventErrorWidget extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Icon(Icons.error_outline, color: Colors.red, size: 48),
+          SizedBox(height: 8),
+          Text(
+            "Gagal memuat event",
+            style: TextStyle(color: Colors.red, fontSize: 16),
+          ),
+          SizedBox(height: 4),
+          Text(
+            controller.errorMessageEvents.value,
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+            textAlign: TextAlign.center,
           ),
           SizedBox(height: 16),
-
-          // Banner
-          SizedBox(
-            height: 180,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: NetworkImageAssets.bannerImages.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
-              itemBuilder: (_, i) {
-                return Container(
-                  margin: EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: NetworkImage(NetworkImageAssets.bannerImages[i]),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Banner indicators
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              NetworkImageAssets.bannerImages.length,
-              (index) => Container(
-                width: 8,
-                height: 8,
-                margin: EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentPage == index ? Colors.red : Colors.grey,
-                ),
-              ),
-            ),
-          ),
-
-          SizedBox(height: 24),
-
-          // Event section
-          Text("Event",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)),
-          SizedBox(height: 12),
-
-          FutureBuilder<List<EventModel>>(
-            future: _eventsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: CircularProgressIndicator(color: Colors.red),
-                  ),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return Container(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red, size: 48),
-                      SizedBox(height: 8),
-                      Text("Gagal memuat event",
-                          style: TextStyle(color: Colors.red, fontSize: 16)),
-                      SizedBox(height: 4),
-                      Text("${snapshot.error}",
-                          style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _eventsFuture = controller.getEvents();
-                          });
-                        },
-                        child: Text("Coba Lagi"),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              final events = snapshot.data ?? [];
-
-              if (events.isEmpty) {
-                return Container(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(Icons.event_busy, color: Colors.grey, size: 48),
-                      SizedBox(height: 8),
-                      Text("Tidak ada event tersedia",
-                          style: TextStyle(color: Colors.grey, fontSize: 16)),
-                    ],
-                  ),
-                );
-              }
-
-              return Column(
-                children: events.map((event) => _eventCard(event)).toList(),
-              );
-            },
+          ElevatedButton(
+            onPressed: controller.retryLoadEvents,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text("Coba Lagi", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _eventCard(EventModel event) {
+// Event Empty Widget
+class EventEmptyWidget extends GetView<HomeTabController> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(Icons.event_busy, color: Colors.grey, size: 48),
+          SizedBox(height: 8),
+          Text(
+            controller.searchText.value.isEmpty
+                ? "Tidak ada event tersedia"
+                : "Tidak ada event yang sesuai dengan pencarian",
+            style: TextStyle(color: Colors.grey, fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Event Card Widget
+class EventCard extends StatelessWidget {
+  final EventModel event;
+
+  const EventCard({Key? key, required this.event}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<HomeTabController>();
+
     return GestureDetector(
-      onTap: () {
-        // Pass the actual event data to DetailEventScreen
-        Get.to(() => DetailEventScreen(event: event));
-      },
+      onTap: () => controller.navigateToDetail(event),
       child: Container(
         margin: EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -217,124 +365,155 @@ class _HomeTabState extends State<HomeTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Event Image
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              child: Container(
-                height: 180,
-                width: double.infinity,
-                child: Image.network(
-                  event.image,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: Icon(
-                        Icons.image_not_supported,
-                        size: 50,
-                        color: Colors.grey[600],
-                      ),
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      height: 180,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.red,
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            // Event Details
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.name_event,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 8),
-
-                  // Date
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today, size: 14, color: Colors.grey),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          _formatDate(event.waktu),
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-
-                  // Artist
-                  Row(
-                    children: [
-                      Icon(Icons.person, size: 14, color: Colors.grey),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          event.artis,
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-
-                  // Location
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, size: 14, color: Colors.grey),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          "Seven Dream City, Jember",
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            EventCardImage(imageUrl: event.image),
+            EventCardContent(event: event),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Event Card Image Widget
+class EventCardImage extends StatelessWidget {
+  final String imageUrl;
+
+  const EventCardImage({Key? key, required this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      child: Container(
+        height: 180,
+        width: double.infinity,
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey[300],
+              child: Icon(
+                Icons.image_not_supported,
+                size: 50,
+                color: Colors.grey[600],
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              height: 180,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.red,
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// Event Card Content Widget
+class EventCardContent extends StatelessWidget {
+  final EventModel event;
+
+  const EventCardContent({Key? key, required this.event}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EventCardTitle(title: event.nameEvent),
+          SizedBox(height: 8),
+          EventCardInfo(
+            icon: Icons.calendar_today,
+            text: _formatDate(event.waktu),
+          ),
+          SizedBox(height: 4),
+          EventCardInfo(
+            icon: Icons.person,
+            text: event.artis,
+          ),
+          SizedBox(height: 4),
+          EventCardInfo(
+            icon: Icons.location_on,
+            text: "Seven Dream City, Jember",
+          ),
+        ],
       ),
     );
   }
 
   String _formatDate(String dateString) {
     try {
-      final date = DateTime.parse(dateString);
-      return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(date);
+      final dateUtc = DateTime.parse(dateString);
+      final localDate = dateUtc.toLocal();
+      return DateFormat('EEEE, dd MMMM yyyy - HH:mm', 'id_ID')
+          .format(localDate);
     } catch (e) {
-      return dateString; // Return original string if parsing fails
+      return dateString;
     }
+  }
+}
+
+// Event Card Title Widget
+class EventCardTitle extends StatelessWidget {
+  final String title;
+
+  const EventCardTitle({Key? key, required this.title}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 16,
+      ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+// Event Card Info Widget
+class EventCardInfo extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const EventCardInfo({
+    Key? key,
+    required this.icon,
+    required this.text,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.grey),
+        SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }
