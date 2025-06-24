@@ -1,9 +1,11 @@
 import 'package:dreamtix/features/home/controller/HomeTabController.dart';
 import 'package:dreamtix/features/home/model/event_model.dart';
 import 'package:dreamtix/features/home/view/detail_view_screen.dart';
+import 'package:dreamtix/routes/route.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:dreamtix/core/helper/date.dart' as date;
 
 class HomeTab extends GetView<HomeTabController> {
   @override
@@ -29,30 +31,78 @@ class HomeTab extends GetView<HomeTabController> {
   }
 }
 
-// Search Bar Widget
+// Search Bar Widget dengan perubahan untuk menampilkan status pencarian
 class SearchBar extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      onChanged: controller.updateSearch,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: "Cari berdasarkan artis, acara atau nama tempat",
-        hintStyle: TextStyle(color: Colors.grey),
-        filled: true,
-        fillColor: Color(0xFF1B1A47),
-        suffixIcon: Icon(Icons.search, color: Colors.white),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    return Column(
+      children: [
+        TextField(
+          controller: controller.searchController,
+          onChanged: controller.updateSearch,
+          onSubmitted: (value) {
+            // Tambahkan aksi ketika Enter ditekan
+            controller.performSearch(value);
+          },
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: "Cari berdasarkan artis, acara atau nama tempat",
+            hintStyle: TextStyle(color: Colors.grey),
+            filled: true,
+            fillColor: Color(0xFF1B1A47),
+            suffixIcon: Obx(() => controller.searchText.value.isNotEmpty
+                ? GestureDetector(
+                    onTap: () => controller.clearSearch(),
+                    child: Icon(Icons.clear, color: Colors.white),
+                  )
+                : Icon(Icons.search, color: Colors.white)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
+        // Tampilkan indikator pencarian aktif
+        Obx(() {
+          if (controller.searchText.value.isNotEmpty) {
+            return Container(
+              margin: EdgeInsets.only(top: 8),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.search, size: 14, color: Colors.red),
+                  SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Mencari: "${controller.searchText.value}"',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => controller.clearSearch(),
+                    child: Icon(Icons.close, size: 14, color: Colors.red),
+                  ),
+                ],
+              ),
+            );
+          }
+          return SizedBox.shrink();
+        }),
+      ],
     );
   }
 }
 
-// Banner Section Widget
+// Banner Section Widget - Tetap sama, tidak berubah
 class BannerSection extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
@@ -66,7 +116,7 @@ class BannerSection extends GetView<HomeTabController> {
   }
 }
 
-// Banner Carousel Widget
+// Banner Carousel Widget - Tetap sama
 class BannerCarousel extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
@@ -98,7 +148,7 @@ class BannerCarousel extends GetView<HomeTabController> {
   }
 }
 
-// Banner Item Widget
+// Banner Item Widget - Tetap sama
 class BannerItem extends StatelessWidget {
   final String imageUrl;
 
@@ -128,7 +178,7 @@ class BannerItem extends StatelessWidget {
   }
 }
 
-// Banner Indicators Widget
+// Banner Indicators Widget - Tetap sama
 class BannerIndicators extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
@@ -156,7 +206,7 @@ class BannerIndicators extends GetView<HomeTabController> {
   }
 }
 
-// Banner Error Widget
+// Banner Error Widget - Tetap sama
 class BannerErrorWidget extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
@@ -187,7 +237,7 @@ class BannerErrorWidget extends GetView<HomeTabController> {
   }
 }
 
-// Banner Empty Widget
+// Banner Empty Widget - Tetap sama
 class BannerEmptyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -213,14 +263,17 @@ class BannerEmptyWidget extends StatelessWidget {
   }
 }
 
-// Event Section Widget
+// Event Section Widget dengan header yang disesuaikan
 class EventSection extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EventSectionHeader(),
+        Obx(() => EventSectionHeader(
+              isSearching: controller.searchText.value.isNotEmpty,
+              resultCount: controller.filteredEvents.length,
+            )),
         SizedBox(height: 12),
         EventList(),
       ],
@@ -228,22 +281,44 @@ class EventSection extends GetView<HomeTabController> {
   }
 }
 
-// Event Section Header Widget
+// Event Section Header Widget dengan informasi pencarian
 class EventSectionHeader extends StatelessWidget {
+  final bool isSearching;
+  final int resultCount;
+
+  const EventSectionHeader({
+    Key? key,
+    required this.isSearching,
+    required this.resultCount,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Text(
-      "Event",
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          isSearching ? "Hasil Pencarian" : "Event",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (isSearching)
+          Text(
+            "$resultCount event ditemukan",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+            ),
+          ),
+      ],
     );
   }
 }
 
-// Event List Widget
+// Event List Widget - Tetap sama
 class EventList extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
@@ -269,7 +344,7 @@ class EventList extends GetView<HomeTabController> {
   }
 }
 
-// Event Loading Widget
+// Event Loading Widget - Tetap sama
 class EventLoadingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -282,7 +357,7 @@ class EventLoadingWidget extends StatelessWidget {
   }
 }
 
-// Event Error Widget
+// Event Error Widget - Tetap sama
 class EventErrorWidget extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
@@ -314,7 +389,7 @@ class EventErrorWidget extends GetView<HomeTabController> {
   }
 }
 
-// Event Empty Widget
+// Event Empty Widget - Tetap sama
 class EventEmptyWidget extends GetView<HomeTabController> {
   @override
   Widget build(BuildContext context) {
@@ -337,7 +412,7 @@ class EventEmptyWidget extends GetView<HomeTabController> {
   }
 }
 
-// Event Card Widget
+// Event Card Widget - Tetap sama
 class EventCard extends StatelessWidget {
   final EventModel event;
 
@@ -348,7 +423,10 @@ class EventCard extends StatelessWidget {
     final controller = Get.find<HomeTabController>();
 
     return GestureDetector(
-      onTap: () => controller.navigateToDetail(event),
+      onTap: () => Get.toNamed(
+        AppRoute.detailEvent,
+        arguments: event,
+      ),
       child: Container(
         margin: EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -374,7 +452,7 @@ class EventCard extends StatelessWidget {
   }
 }
 
-// Event Card Image Widget
+// Event Card Image Widget - Tetap sama
 class EventCardImage extends StatelessWidget {
   final String imageUrl;
 
@@ -421,7 +499,7 @@ class EventCardImage extends StatelessWidget {
   }
 }
 
-// Event Card Content Widget
+// Event Card Content Widget - Tetap sama
 class EventCardContent extends StatelessWidget {
   final EventModel event;
 
@@ -438,7 +516,7 @@ class EventCardContent extends StatelessWidget {
           SizedBox(height: 8),
           EventCardInfo(
             icon: Icons.calendar_today,
-            text: _formatDate(event.waktu),
+            text: date.formatDate(event.waktu),
           ),
           SizedBox(height: 4),
           EventCardInfo(
@@ -454,20 +532,9 @@ class EventCardContent extends StatelessWidget {
       ),
     );
   }
-
-  String _formatDate(String dateString) {
-    try {
-      final dateUtc = DateTime.parse(dateString);
-      final localDate = dateUtc.toLocal();
-      return DateFormat('EEEE, dd MMMM yyyy - HH:mm', 'id_ID')
-          .format(localDate);
-    } catch (e) {
-      return dateString;
-    }
-  }
 }
 
-// Event Card Title Widget
+// Event Card Title Widget - Tetap sama
 class EventCardTitle extends StatelessWidget {
   final String title;
 
@@ -488,7 +555,7 @@ class EventCardTitle extends StatelessWidget {
   }
 }
 
-// Event Card Info Widget
+// Event Card Info Widget - Tetap sama
 class EventCardInfo extends StatelessWidget {
   final IconData icon;
   final String text;

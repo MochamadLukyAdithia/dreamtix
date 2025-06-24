@@ -1,31 +1,70 @@
-import 'package:dreamtix/features/home/controller/HomeController.dart';
-import 'package:dreamtix/features/home/controller/GpsController.dart';
 import 'package:dreamtix/features/home/model/event_model.dart';
 import 'package:dreamtix/features/home/model/tiket_model.dart';
+import 'package:dreamtix/features/home/controller/HomeController.dart';
 import 'package:dreamtix/routes/route.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 class DetailEventController extends GetxController
     with GetSingleTickerProviderStateMixin {
-  late EventModel event;
+  late final EventModel event;
   late TabController tabController;
-  var selectedTab = 0.obs;
-  var isLoadingTickets = false.obs;
-  var tickets = <Tiket>[].obs;
 
+  // Observable properties
+  final RxList<Tiket> tickets = <Tiket>[].obs;
+  final RxBool isLoadingTickets = false.obs;
+  final RxInt selectedTab = 0.obs;
+
+  // Get HomeController instance
   final HomeController homeController = Get.find<HomeController>();
-  final GpsController gpsController = Get.put(GpsController());
+
+  // Constructor to accept event
+  DetailEventController({EventModel? eventData}) {
+    if (eventData != null) {
+      event = eventData;
+    }
+  }
 
   @override
   void onInit() {
     super.onInit();
-    event = Get.arguments as EventModel;
+
+    // Initialize event from arguments if not provided in constructor
+    if (!_isEventInitialized()) {
+      final args = Get.arguments;
+      if (args is EventModel) {
+        event = args;
+      } else {
+        // Handle error case
+        Get.snackbar(
+          'Error',
+          'Event data not found',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        Get.back();
+        return;
+      }
+    }
+
+    // Initialize tab controller
     tabController = TabController(length: 1, vsync: this);
     tabController.addListener(() {
       selectedTab.value = tabController.index;
     });
+
+    // Load tickets for this event
+    loadTickets();
+  }
+
+  bool _isEventInitialized() {
+    try {
+      // Try to access event properties to check if initialized
+      event.idEvent;
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -34,45 +73,72 @@ class DetailEventController extends GetxController
     super.onClose();
   }
 
+  // Load tickets for the current event
   Future<void> loadTickets() async {
     try {
       isLoadingTickets.value = true;
+      print('Loading tickets for event ID: ${event.idEvent}');
+
+      // Call HomeController method to get tickets by event ID
       final result = await homeController.getTiketsByEventId(event.idEvent);
-      tickets.value = result;
+
+      tickets.assignAll(result);
+      print('Loaded ${result.length} tickets');
     } catch (e) {
-      Get.snackbar('Error', 'Gagal memuat tiket: $e');
+      print('Error loading tickets: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to load tickets: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoadingTickets.value = false;
     }
   }
 
-  void showTicketBottomSheet() async {
+  // Refresh tickets
+  Future<void> refreshTickets() async {
     await loadTickets();
-    Get.bottomSheet(
-      TicketBottomSheet(),
-      backgroundColor: Color(0xFF1B1A47),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-    );
   }
 
+  // Select a ticket and navigate to purchase screen
   void selectTicket(Tiket ticket) {
+    Get.back(); // Close bottom sheet first
     Get.toNamed(AppRoute.beliTiket, arguments: ticket);
   }
 
+  // Show ticket selection bottom sheet
+  void showTicketBottomSheet() async {
+    if (tickets.isEmpty && !isLoadingTickets.value) {
+      await loadTickets();
+    }
+
+    Get.bottomSheet(
+      TicketBottomSheet(),
+      backgroundColor: const Color(0xFF1B1A47),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // Show success dialog after ticket purchase
   void showSuccessDialog(String ticketType) {
     Get.dialog(
       AlertDialog(
-        backgroundColor: Color(0xFF1B1A47),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(
-          "Berhasil!",
+        backgroundColor: const Color(0xFF1B1A47),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title: const Text(
+          "Success!",
           style: TextStyle(color: Colors.white),
         ),
         content: Text(
-          "Tiket $ticketType untuk ${event.nameEvent} berhasil dipesan!",
-          style: TextStyle(color: Colors.grey),
+          "Ticket $ticketType for ${event.nameEvent} has been successfully ordered!",
+          style: const TextStyle(color: Colors.grey),
         ),
         actions: [
           TextButton(
@@ -80,7 +146,7 @@ class DetailEventController extends GetxController
               Get.back(); // Close dialog
               Get.back(); // Return to previous screen
             },
-            child: Text(
+            child: const Text(
               "OK",
               style: TextStyle(color: Colors.red),
             ),
@@ -89,18 +155,39 @@ class DetailEventController extends GetxController
       ),
     );
   }
+
+  // Navigation methods
+  void goBack() {
+    Get.back();
+  }
+
+  void goToHome() {
+    Get.offAllNamed(AppRoute.home);
+  }
+
+  // Get event details
+  EventModel get eventDetails => event;
+
+  // Check if tickets are available
+  bool get hasTickets => tickets.isNotEmpty;
+
+  // Get tickets count
+  int get ticketsCount => tickets.length;
 }
 
-// Separate Widget for Ticket Bottom Sheet
+// Ticket Bottom Sheet Widget
 class TicketBottomSheet extends GetView<DetailEventController> {
+  const TicketBottomSheet({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Container(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Handle bar
             Container(
               width: 40,
               height: 4,
@@ -109,25 +196,41 @@ class TicketBottomSheet extends GetView<DetailEventController> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            SizedBox(height: 20),
-            Text(
-              "Pilih Jenis Tiket",
+            const SizedBox(height: 20),
+
+            // Title
+            const Text(
+              "Select Ticket Type",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
+
+            // Tickets list
             Obx(() {
               if (controller.isLoadingTickets.value) {
-                return Center(child: CircularProgressIndicator());
+                return Container(
+                  height: 100,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.red,
+                    ),
+                  ),
+                );
               }
 
               if (controller.tickets.isEmpty) {
-                return Text(
-                  "Tidak ada tiket tersedia",
-                  style: TextStyle(color: Colors.grey),
+                return Container(
+                  height: 100,
+                  child: const Center(
+                    child: Text(
+                      "No tickets available",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
                 );
               }
 
@@ -140,7 +243,17 @@ class TicketBottomSheet extends GetView<DetailEventController> {
                     .toList(),
               );
             }),
-            SizedBox(height: 20),
+
+            const SizedBox(height: 20),
+
+            // Refresh button
+            TextButton(
+              onPressed: () => controller.refreshTickets(),
+              child: const Text(
+                "Refresh Tickets",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
           ],
         ),
       ),
@@ -148,82 +261,83 @@ class TicketBottomSheet extends GetView<DetailEventController> {
   }
 }
 
-// Fungsi untuk format Rupiah Indonesia
-String formatRupiah(int amount) {
-  final formatter = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp',
-    decimalDigits: 0,
-  );
-  return formatter.format(amount);
-}
-
-// Separate Widget for Ticket Option
-class TicketOption extends GetView<DetailEventController> {
+// Ticket Option Widget
+class TicketOption extends StatelessWidget {
   final Tiket ticket;
 
   const TicketOption({Key? key, required this.ticket}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFF0D0C2D),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[700]!),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  ticket.category.nama,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+    final controller = Get.find<DetailEventController>();
+
+    return GestureDetector(
+      onTap: () => controller.selectTicket(ticket),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A2958),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ticket.category.nama,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  ticket.category.posisi,
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Harga: Rp ${ticket.harga}',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'Posisi: ${ticket.category.posisi ?? "Tidak ditentukan"}',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tersisa: ${ticket.stok ?? "Tidak ditentukan"}',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "${formatRupiah(ticket.harga)}",
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                "Beli",
                 style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
+                  color: Colors.white,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 8),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  minimumSize: Size(0, 0),
-                ),
-                onPressed: () => controller.selectTicket(ticket),
-                child: Text(
-                  "Pilih",
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,10 +1,13 @@
 import 'package:dreamtix/features/profile/controller/ProfileController.dart';
+import 'package:dreamtix/features/auth/controller/AuthController.dart'; // Import AuthController
 import 'package:dreamtix/features/profile/view/ubah_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ProfileView extends StatelessWidget {
-  final ProfileController controller = Get.put(ProfileController());
+  final ProfileController profileController = Get.put(ProfileController());
+  final AuthController authController =
+      Get.put(AuthController()); // Inisialisasi AuthController
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +30,11 @@ class ProfileView extends StatelessWidget {
                     Obx(() => Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(controller.userName.value,
+                            Text(profileController.userName.value,
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold)),
-                            Text(controller.email.value,
+                            Text(profileController.email.value,
                                 style: const TextStyle(color: Colors.white70)),
                           ],
                         )),
@@ -39,7 +42,7 @@ class ProfileView extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
                 buildSection("Akun", [
-                  buildItem("Ubah Profil", () => Get.toNamed("ubah-profile")),
+                  // buildItem("Ubah Profil", () => Get.toNamed("ubah-profile")),
                   buildItem(
                       "Ubah Kata Sandi", () => Get.toNamed("ubah-password")),
                 ]),
@@ -52,8 +55,31 @@ class ProfileView extends StatelessWidget {
                 ]),
                 buildSection("Lainya", [
                   buildItem("Cara Membeli Tiket", () => Get.toNamed("membeli")),
-                  buildItem("Logout", () => Get.toNamed("login")),
                 ]),
+                // Logout button terpisah
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ElevatedButton.icon(
+                    onPressed: () => authController.logout(),
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    label: const Text(
+                      "Logout",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -74,9 +100,19 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget buildItem(String text, VoidCallback onTap) {
+  Widget buildItem(String text, VoidCallback onTap, {bool isLogout = false}) {
     return ListTile(
-      title: Text(text, style: const TextStyle(color: Colors.white)),
+      leading: isLogout
+          ? Icon(Icons.logout,
+              color: Colors.red, size: 20) // Tambahkan icon logout
+          : null,
+      title: Text(text,
+          style: TextStyle(
+            color: isLogout
+                ? Colors.red
+                : Colors.white, // Warna merah untuk logout
+            fontWeight: isLogout ? FontWeight.w500 : FontWeight.normal,
+          )),
       trailing:
           const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
       onTap: onTap,

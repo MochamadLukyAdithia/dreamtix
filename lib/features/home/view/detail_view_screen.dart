@@ -1,31 +1,40 @@
 import 'package:dreamtix/features/home/controller/DetailEventController.dart';
+import 'package:dreamtix/features/home/controller/GpsController.dart';
 import 'package:dreamtix/features/home/model/event_model.dart';
+import 'package:dreamtix/features/home/model/tiket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:dreamtix/core/helper/date.dart' as date;
 
-class DetailEventScreen extends GetView<DetailEventController> {
+class DetailEventScreen extends StatelessWidget {
+  final EventModel event;
+  DetailEventScreen({super.key, required this.event});
+
   @override
   Widget build(BuildContext context) {
-    Get.put(DetailEventController());
+    // Initialize controller with event data
+    final controller =
+        Get.put(DetailEventController(eventData: event), permanent: false);
 
     return Scaffold(
       backgroundColor: Color(0xFF0D0C2D),
       body: CustomScrollView(
         slivers: [
-          EventImageAppBar(event: controller.event),
+          EventImageAppBar(event: event),
           SliverToBoxAdapter(
-            child: EventContent(),
+            child: EventContent(event: event),
           ),
         ],
       ),
-      bottomNavigationBar: BuyTicketButton(),
+      bottomNavigationBar: BuyTicketButton(
+        event: event,
+      ),
     );
   }
 }
 
-// Separate Widget for App Bar with Image
 class EventImageAppBar extends StatelessWidget {
   final EventModel event;
 
@@ -36,7 +45,7 @@ class EventImageAppBar extends StatelessWidget {
     return SliverAppBar(
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Get.toNamed("home"),
+        onPressed: () => Get.back(),
       ),
       expandedHeight: 250,
       pinned: true,
@@ -96,8 +105,10 @@ class EventImageAppBar extends StatelessWidget {
   }
 }
 
-// Separate Widget for Event Content
-class EventContent extends GetView<DetailEventController> {
+class EventContent extends StatelessWidget {
+  final EventModel event;
+  EventContent({required this.event});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -105,9 +116,11 @@ class EventContent extends GetView<DetailEventController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EventTitle(),
+          EventTitle(event: event),
           SizedBox(height: 16),
-          EventInfoCards(),
+          EventInfoCards(
+            event: event,
+          ),
           SizedBox(height: 24),
           // EventMapSection(),
           SizedBox(height: 24),
@@ -119,12 +132,14 @@ class EventContent extends GetView<DetailEventController> {
   }
 }
 
-// Widget for Event Title
-class EventTitle extends GetView<DetailEventController> {
+class EventTitle extends StatelessWidget {
+  final EventModel event;
+  EventTitle({required this.event});
+
   @override
   Widget build(BuildContext context) {
     return Text(
-      controller.event.nameEvent,
+      event.nameEvent,
       style: TextStyle(
         fontSize: 24,
         color: Colors.white,
@@ -134,8 +149,10 @@ class EventTitle extends GetView<DetailEventController> {
   }
 }
 
-// Widget for Event Info Cards
-class EventInfoCards extends GetView<DetailEventController> {
+class EventInfoCards extends StatelessWidget {
+  final EventModel event;
+  EventInfoCards({required this.event});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -143,13 +160,13 @@ class EventInfoCards extends GetView<DetailEventController> {
         EventInfoCard(
           icon: Icons.calendar_today,
           title: "Tanggal & Waktu",
-          content: _formatDateTime(controller.event.waktu),
+          content: date.formatDate(event.waktu),
         ),
         SizedBox(height: 12),
         EventInfoCard(
           icon: Icons.person,
           title: "Artis",
-          content: controller.event.artis,
+          content: event.artis,
         ),
         SizedBox(height: 12),
         EventInfoCard(
@@ -160,18 +177,8 @@ class EventInfoCards extends GetView<DetailEventController> {
       ],
     );
   }
-
-  String _formatDateTime(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return DateFormat('EEEE, dd MMMM yyyy • HH:mm', 'id_ID').format(date);
-    } catch (e) {
-      return dateString;
-    }
-  }
 }
 
-// Reusable Widget for Info Card
 class EventInfoCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -233,42 +240,6 @@ class EventInfoCard extends StatelessWidget {
   }
 }
 
-// // Widget for Map Section
-// class EventMapSection extends GetView<DetailEventController> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       height: 200,
-//       width: double.infinity,
-//       decoration: BoxDecoration(
-//         borderRadius: BorderRadius.circular(12),
-//         color: Colors.grey[800],
-//       ),
-//       child: ClipRRect(
-//         borderRadius: BorderRadius.circular(12),
-//         child: Obx(() {
-//           if (controller.gpsController.currentPosition.value == null) {
-//             return Center(child: CircularProgressIndicator());
-//           }
-
-//           return GoogleMap(
-//             initialCameraPosition: CameraPosition(
-//               target: controller.gpsController.currentPosition.value!,
-//               zoom: 15,
-//             ),
-//             onMapCreated: controller.gpsController.onMapCreated,
-//             markers: controller.gpsController.marker.value != null
-//                 ? {controller.gpsController.marker.value!}
-//                 : {},
-//             myLocationEnabled: true,
-//           );
-//         }),
-//       ),
-//     );
-//   }
-// }
-
-// Widget for Tab Section
 class EventTabSection extends GetView<DetailEventController> {
   @override
   Widget build(BuildContext context) {
@@ -306,7 +277,6 @@ class EventTabSection extends GetView<DetailEventController> {
   }
 }
 
-// Widget for Event Description
 class EventDescription extends GetView<DetailEventController> {
   @override
   Widget build(BuildContext context) {
@@ -341,16 +311,16 @@ class EventDescription extends GetView<DetailEventController> {
             ),
           ),
           SizedBox(height: 8),
-          ...EventFacilities().buildFacilityList(),
+          EventFacilities(),
         ],
       ),
     );
   }
 }
 
-// Widget for Event Facilities
-class EventFacilities {
-  List<Widget> buildFacilityList() {
+class EventFacilities extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     final facilities = [
       "Parking area yang luas",
       "Food court dan minuman",
@@ -359,26 +329,30 @@ class EventFacilities {
       "Area merchandise",
     ];
 
-    return facilities
-        .map((facility) => Padding(
-              padding: EdgeInsets.only(bottom: 4),
-              child: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 16),
-                  SizedBox(width: 8),
-                  Text(
-                    facility,
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                ],
-              ),
-            ))
-        .toList();
+    return Column(
+      children: facilities
+          .map((facility) => Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      facility,
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ))
+          .toList(),
+    );
   }
 }
 
-// Widget for Buy Ticket Button
 class BuyTicketButton extends GetView<DetailEventController> {
+  final EventModel event;
+  BuyTicketButton({required this.event});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -397,7 +371,9 @@ class BuyTicketButton extends GetView<DetailEventController> {
             ),
             elevation: 0,
           ),
-          onPressed: controller.showTicketBottomSheet,
+          onPressed: () {
+            controller.showTicketBottomSheet();
+          },
           child: Text(
             "Beli Tiket",
             style: TextStyle(
@@ -407,6 +383,308 @@ class BuyTicketButton extends GetView<DetailEventController> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class TicketBottomSheet extends GetView<DetailEventController> {
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              "Pilih Jenis Tiket",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            Obx(() {
+              if (controller.isLoadingTickets.value) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              if (controller.tickets.isEmpty) {
+                return Text(
+                  "Tidak ada tiket tersedia",
+                  style: TextStyle(color: Colors.grey),
+                );
+              }
+
+              return Column(
+                children: controller.tickets
+                    .map((ticket) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: TicketOption(ticket: ticket),
+                        ))
+                    .toList(),
+              );
+            }),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TicketOption extends GetView<DetailEventController> {
+  final Tiket ticket;
+
+  const TicketOption({Key? key, required this.ticket}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Color(0xFF0D0C2D),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[700]!),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ticket.category.nama,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  ticket.category.posisi,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "${CurrencyFormatter.formatRupiah(ticket.harga)}",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  minimumSize: Size(0, 0),
+                ),
+                onPressed: () => controller.selectTicket(ticket),
+                child: Text(
+                  "Pilih",
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CurrencyFormatter {
+  static String formatRupiah(int amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+}
+
+// class EventMapSection extends GetView<DetailEventController> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       height: 200,
+//       width: double.infinity,
+//       decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(12),
+//         color: Colors.grey[800],
+//       ),
+//       child: ClipRRect(
+//         borderRadius: BorderRadius.circular(12),
+//         child: Obx(() {
+//           if (GpsController().currentPosition.value == null) {
+//             return Center(child: CircularProgressIndicator());
+//           }
+//           return GoogleMap(
+//             initialCameraPosition: CameraPosition(
+//               target: GpsController().currentPosition.value!,
+//               zoom: 15,
+//             ),
+//             onMapCreated: GpsController().onMapCreated,
+//             markers: GpsController().marker.value != null
+//                 ? {GpsController().marker.value!}
+//                 : {},
+//             myLocationEnabled: true,
+//           );
+//         }),
+//       ),
+//     );
+//   }
+// }
+
+class EventMapSection extends GetView<DetailEventController> {
+  final GpsController gpsController =
+      Get.put(GpsController()); // Properly initialize controller
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey[800],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Obx(() {
+          // Show loading state
+          if (gpsController.isLoading.value) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.white),
+                  SizedBox(height: 8),
+                  Text(
+                    'Getting location...',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Show error state with retry option
+          if (gpsController.hasError.value) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 32),
+                  SizedBox(height: 8),
+                  Text(
+                    'Maps unavailable',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    gpsController.errorMessage.value,
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => gpsController.refreshLocation(),
+                        icon: Icon(Icons.refresh, size: 16),
+                        label: Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => gpsController.openInMaps(),
+                        icon: Icon(Icons.open_in_new, size: 16),
+                        label: Text('Open Maps'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Show maps when location is available
+          if (gpsController.currentPosition.value != null) {
+            return Stack(
+              children: [
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: gpsController.currentPosition.value!,
+                    zoom: 16,
+                  ),
+                  onMapCreated: gpsController.onMapCreated,
+                  markers: gpsController.marker.value != null
+                      ? {gpsController.marker.value!}
+                      : {},
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
+                  compassEnabled: true,
+                  mapToolbarEnabled: false,
+                  zoomControlsEnabled: false,
+                ),
+                // Floating action button to open in external maps
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.white,
+                    onPressed: () => gpsController.openInMaps(),
+                    child:
+                        Icon(Icons.open_in_new, color: Colors.blue, size: 20),
+                    heroTag: "open_maps_btn", // Unique hero tag
+                  ),
+                ),
+              ],
+            );
+          }
+
+          // Fallback loading state
+          return Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }),
       ),
     );
   }

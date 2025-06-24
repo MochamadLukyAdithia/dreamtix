@@ -1,7 +1,6 @@
 import 'package:dreamtix/features/home/model/tiket_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/get_core.dart';
 import 'package:intl/intl.dart';
 
 class BeliTiketScreen extends StatefulWidget {
@@ -9,7 +8,7 @@ class BeliTiketScreen extends StatefulWidget {
   const BeliTiketScreen({super.key, required this.ticket});
 
   @override
-  State createState() => _BeliTiketScreenState();
+  State<BeliTiketScreen> createState() => _BeliTiketScreenState();
 }
 
 class _BeliTiketScreenState extends State<BeliTiketScreen> {
@@ -36,7 +35,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
     final total = harga * quantity;
 
     return Scaffold(
-      backgroundColor: Color(0xFF0F1419), // Darker navy background to match
+      backgroundColor: Color(0xFF0D0C2D),
       appBar: AppBar(
         title: Text(
           "Pembelian Tiket",
@@ -46,11 +45,11 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Color(0xFF0F1419), // Match background
+        backgroundColor: Color(0xFF0D0C2D),
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.toNamed("detail-event"),
+          onPressed: () => Get.back(),
         ),
       ),
       body: Container(
@@ -59,9 +58,9 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0F1419), // Dark navy
-              Color(0xFF1A1F2E), // Slightly lighter navy
-              Color(0xFF252B3A), // Even lighter for depth
+              Color(0xFF0D0C2D),
+              Color(0xFF1B1A47),
+              Color(0xFF252B3A),
             ],
           ),
         ),
@@ -70,14 +69,13 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Card Informasi Tiket - matching the screenshot cards
+              // Card Informasi Tiket
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF252B3A), // Solid color matching screenshot
-                  borderRadius:
-                      BorderRadius.circular(16), // Slightly smaller radius
+                  color: Color(0xFF1B1A47),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.2),
@@ -94,8 +92,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                         Container(
                           padding: EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color:
-                                Colors.red, // Red accent color from screenshot
+                            color: Colors.red,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -106,13 +103,25 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                         ),
                         SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            widget.ticket?.category.nama ?? 'Tiket',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.ticket?.category.nama ?? 'Tiket',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                widget.ticket?.category.posisi ?? 'Posisi',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -122,7 +131,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Color(0xFF1A1F2E).withOpacity(0.8),
+                        color: Color(0xFF0D0C2D).withOpacity(0.8),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -143,7 +152,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
               Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF252B3A), // Match card color
+                  color: Color(0xFF1B1A47),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: Color(0xFF353B4A).withOpacity(0.3),
@@ -166,9 +175,8 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: quantity > 1
-                                ? Colors.red // Match red accent
-                                : Color(0xFF353B4A),
+                            color:
+                                quantity > 1 ? Colors.red : Color(0xFF353B4A),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: IconButton(
@@ -185,7 +193,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                           padding: EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),
                           decoration: BoxDecoration(
-                            color: Color(0xFF1A1F2E),
+                            color: Color(0xFF0D0C2D),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Color(0xFF353B4A)),
                           ),
@@ -200,7 +208,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Color(0xFF4ECDC4),
+                            color: Colors.red,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: IconButton(
@@ -222,10 +230,10 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
               Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF252B3A), // Solid background
+                  color: Color(0xFF1B1A47),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Color(0xFFFF5A5F).withOpacity(0.3),
+                    color: Colors.red.withOpacity(0.3),
                   ),
                 ),
                 child: Row(
@@ -244,7 +252,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF4ECDC4),
+                        color: Colors.red,
                       ),
                     ),
                   ],
@@ -257,7 +265,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
               Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF252B3A), // Match card color
+                  color: Color(0xFF1B1A47),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: Color(0xFF353B4A).withOpacity(0.3),
@@ -279,7 +287,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Color(0xFF1A1F2E),
+                        color: Color(0xFF0D0C2D),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Color(0xFF353B4A)),
                       ),
@@ -287,7 +295,7 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                         isExpanded: true,
                         value: selectedMethod,
                         underline: SizedBox(),
-                        dropdownColor: Color(0xFF252B3A),
+                        dropdownColor: Color(0xFF1B1A47),
                         style: TextStyle(color: Colors.white),
                         hint: Text(
                           "Pilih metode pembayaran",
@@ -316,28 +324,10 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
               ),
 
               SizedBox(height: 32),
-
-              // Tombol Konfirmasi - matching the red button from screenshot
+// Tombol Konfirmasi
               Container(
                 width: double.infinity,
                 height: 56,
-                decoration: BoxDecoration(
-                  gradient: selectedMethod == null
-                      ? LinearGradient(
-                          colors: [Color(0xFF353B4A), Color(0xFF353B4A)])
-                      : LinearGradient(
-                          colors: [
-                            Colors.red,
-                            Colors.red
-                          ], // Match screenshot red
-                        ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: selectedMethod == null
-                      ? []
-                      : [
-                          BoxShadow(color: Colors.red),
-                        ],
-                ),
                 child: ElevatedButton.icon(
                   icon: Icon(
                     Icons.payment,
@@ -346,18 +336,119 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                   onPressed: selectedMethod == null
                       ? null
                       : () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Tiket dibeli: $quantity, Total: ${formatRupiah(total)}, Metode: $selectedMethod",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              backgroundColor: Color(0xFF4ECDC4),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
+                          // Tampilkan alert konfirmasi
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(
+                                  "Konfirmasi Pesanan",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Pastikan pesanan Anda sudah benar:"),
+                                    SizedBox(height: 12),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Tiket:",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w500)),
+                                        Text(
+                                            "${widget.ticket!.category.nama ?? 'N/A'}"),
+                                      ],
+                                    ),
+                                    SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Jumlah:",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w500)),
+                                        Text("$quantity tiket"),
+                                      ],
+                                    ),
+                                    SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Metode Bayar:",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w500)),
+                                        Text("$selectedMethod"),
+                                      ],
+                                    ),
+                                    SizedBox(height: 8),
+                                    Divider(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Total:",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          "Rp ${total.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(); // Tutup dialog
+                                    },
+                                    child: Text(
+                                      "Batal",
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(); // Tutup dialog
+
+                                      // Create payment data object
+                                      // final paymentData = {
+                                      //   'ticket': widget.ticket,
+                                      //   'quantity': quantity,
+                                      //   'total': total,
+                                      //   'paymentMethod': selectedMethod,
+                                      // };
+
+                                      // Navigate to payment screen with data
+                                      Get.toNamed("bayar-tiket",
+                                          arguments: total);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    child: Text("Lanjut Bayar"),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         },
                   label: Text(
@@ -369,11 +460,12 @@ class _BeliTiketScreenState extends State<BeliTiketScreen> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
+                    backgroundColor:
+                        selectedMethod == null ? Color(0xFF353B4A) : Colors.red,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
+                    elevation: selectedMethod == null ? 0 : 4,
                   ),
                 ),
               ),

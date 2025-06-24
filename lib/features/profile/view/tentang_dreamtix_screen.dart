@@ -23,17 +23,11 @@ class TentangDreamTixScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.movie,
-                        size: 60,
-                        color: Colors.white,
-                      ),
-                    ),
+                        child: Image.asset(
+                      "assets/images/logo.png",
+                      height: 100,
+                      width: 100,
+                    )),
                     const SizedBox(height: 16),
                     const Text(
                       "DreamTix",
@@ -57,17 +51,17 @@ class TentangDreamTixScreen extends StatelessWidget {
               _buildSection(
                 title: "Tentang Aplikasi",
                 content:
-                    "DreamTix adalah platform pembelian tiket bioskop terdepan di Indonesia. Kami hadir dengan misi untuk memberikan pengalaman menonton film yang tak terlupakan bagi seluruh masyarakat Indonesia.\n\nDengan interface yang user-friendly dan fitur-fitur canggih, DreamTix memudahkan Anda untuk memesan tiket bioskop favorit dengan cepat dan mudah.",
+                    "DreamTix adalah platform pembelian tiket konser terdepan di Indonesia. Kami hadir dengan misi untuk memberikan pengalaman menonton konser yang tak terlupakan bagi seluruh masyarakat Indonesia.\n\nDengan interface yang user-friendly dan fitur-fitur canggih, DreamTix memudahkan Anda untuk memesan tiket konser favorit dengan cepat dan mudah.",
               ),
               _buildSection(
                 title: "Visi Kami",
                 content:
-                    "Menjadi platform digital terdepan yang menghubungkan pecinta film dengan pengalaman sinema terbaik di seluruh Indonesia.",
+                    "Menjadi platform digital terdepan yang menghubungkan pecinta konser dengan pengalaman sinema terbaik di seluruh Indonesia.",
               ),
               _buildSection(
                 title: "Misi Kami",
                 content:
-                    "• Menyediakan layanan pemesanan tiket yang mudah dan terpercaya\n• Memberikan informasi film yang lengkap dan akurat\n• Menghadirkan promo dan penawaran menarik untuk pelanggan\n• Mendukung industri perfilman Indonesia",
+                    "• Menyediakan layanan pemesanan tiket yang mudah dan terpercaya\n• Memberikan informasi konser yang lengkap dan akurat\n• Menghadirkan promo dan penawaran menarik untuk pelanggan\n• Mendukung industri perkonseran Indonesia",
               ),
 
               // Features Section
@@ -91,14 +85,14 @@ class TentangDreamTixScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildFeatureItem(
-                        Icons.local_movies, "Koleksi Film Terlengkap"),
+                        Icons.local_movies, "Koleksi konser Terlengkap"),
                     _buildFeatureItem(
-                        Icons.location_on, "Jaringan Bioskop Luas"),
+                        Icons.location_on, "Jaringan konser Luas"),
                     _buildFeatureItem(Icons.payment, "Pembayaran Aman & Mudah"),
                     _buildFeatureItem(Icons.discount, "Promo Menarik"),
                     _buildFeatureItem(
                         Icons.support_agent, "Customer Service 24/7"),
-                    _buildFeatureItem(Icons.star, "Review & Rating Film"),
+                    _buildFeatureItem(Icons.star, "Review & Rating konser"),
                   ],
                 ),
               ),

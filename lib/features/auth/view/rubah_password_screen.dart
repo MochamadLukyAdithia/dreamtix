@@ -3,68 +3,122 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
+
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final currentPasswordC = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   final newPasswordC = TextEditingController();
   final confirmPasswordC = TextEditingController();
-
-  String? currentPasswordError;
-  String? newPasswordError;
-  String? confirmPasswordError;
-
   final authController = Get.find<AuthController>();
 
   @override
   void dispose() {
-    currentPasswordC.dispose();
     newPasswordC.dispose();
     confirmPasswordC.dispose();
     super.dispose();
   }
 
-  void validateInputs() {
-    setState(() {
-      // Validate current password
-      currentPasswordError = currentPasswordC.text.isEmpty
-          ? 'Password saat ini tidak boleh kosong'
-          : null;
+  Future<void> _changePassword() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      // Validate new password
-      if (newPasswordC.text.isEmpty) {
-        newPasswordError = 'Password baru tidak boleh kosong';
-      } else if (newPasswordC.text.length < 6) {
-        newPasswordError = 'Password minimal 6 karakter';
-      } else {
-        newPasswordError = null;
+    // Show loading dialog
+    Get.dialog(
+      const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+        ),
+      ),
+      barrierDismissible: false,
+      barrierColor: Colors.black54,
+    );
+
+    try {
+      final success = await authController.rubahPassword(newPasswordC.text);
+
+      // Always close loading dialog
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
       }
 
-      // Validate confirm password
-      if (confirmPasswordC.text.isEmpty) {
-        confirmPasswordError = 'Konfirmasi password tidak boleh kosong';
-      } else if (confirmPasswordC.text != newPasswordC.text) {
-        confirmPasswordError = 'Password tidak cocok';
+      if (success) {
+        newPasswordC.clear();
+        confirmPasswordC.clear();
+
+        // Show success alert
+        await Get.dialog(
+          AlertDialog(
+            backgroundColor: const Color(0xFF1B1A47),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            title: const Text(
+              'Sukses',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: const Text(
+              'Password berhasil diubah',
+              style: TextStyle(color: Colors.white),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+          barrierDismissible: false,
+        );
+
+        // Navigate back to previous screen
+        Get.back();
       } else {
-        confirmPasswordError = null;
+        // Show error snackbar
+        Get.snackbar(
+          'Error',
+          'Gagal mengubah password',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 3),
+        );
       }
-    });
+    } catch (e) {
+      // Close loading dialog on error
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+
+      // Show error snackbar
+      Get.snackbar(
+        'Error',
+        'Terjadi kesalahan: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF0D0C2D),
+      backgroundColor: const Color(0xFF0D0C2D),
       appBar: AppBar(
-        backgroundColor: Color(0xFF0D0C2D),
+        backgroundColor: const Color(0xFF0D0C2D),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: Get.back,
         ),
-        title: Text(
+        title: const Text(
           'Ubah Password',
           style: TextStyle(
             color: Colors.white,
@@ -79,221 +133,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Center(
             child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Header Icon
-                  Container(
-                    margin: EdgeInsets.only(bottom: 40),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Color(0xFF1B1A47),
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          child: Icon(
-                            Icons.lock_reset,
-                            size: 40,
-                            color: Colors.red,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Ubah Password Anda',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Masukkan password lama dan password baru',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[400],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Current Password Field
-                  Obx(() => TextField(
-                        controller: currentPasswordC,
-                        obscureText:
-                            !authController.isCurrentPasswordVisible.value,
-                        style: TextStyle(color: Colors.white),
-                        decoration: _inputDecoration(
-                          "Password Saat Ini",
-                          Icons.lock_outline,
-                          errorText: currentPasswordError,
-                        ).copyWith(
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              authController.isCurrentPasswordVisible.value
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey[400],
-                            ),
-                            onPressed: authController.toggleCurrentPassword,
-                          ),
-                        ),
-                      )),
-                  SizedBox(height: 20),
-
-                  // New Password Field
-                  Obx(() => TextField(
-                        controller: newPasswordC,
-                        obscureText: !authController.isNewPasswordVisible.value,
-                        style: TextStyle(color: Colors.white),
-                        decoration: _inputDecoration(
-                          "Password Baru",
-                          Icons.lock_clock_outlined,
-                          errorText: newPasswordError,
-                        ).copyWith(
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              authController.isNewPasswordVisible.value
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey[400],
-                            ),
-                            onPressed: authController.tooglenewPassword,
-                          ),
-                        ),
-                      )),
-                  SizedBox(height: 20),
-
-                  // Confirm Password Field
-                  Obx(() => TextField(
-                        controller: confirmPasswordC,
-                        obscureText:
-                            !authController.isConfirmPasswordVisible.value,
-                        style: TextStyle(color: Colors.white),
-                        decoration: _inputDecoration(
-                          "Konfirmasi Password Baru",
-                          Icons.lock_person_outlined,
-                          errorText: confirmPasswordError,
-                        ).copyWith(
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              authController.isConfirmPasswordVisible.value
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey[400],
-                            ),
-                            onPressed: authController.toggleConfirmPassword,
-                          ),
-                        ),
-                      )),
-
-                  SizedBox(height: 40),
-
-                  // Change Password Button
-                  Container(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        validateInputs();
-                        if (currentPasswordError == null &&
-                            newPasswordError == null &&
-                            confirmPasswordError == null) {
-                          // Show loading
-                          Get.dialog(
-                            Center(
-                              child: Container(
-                                padding: EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF1B1A47),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.red),
-                                    ),
-                                    SizedBox(height: 16),
-                                    Text(
-                                      'Mengubah password...',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            barrierDismissible: false,
-                          );
-
-                          // Call API to change password
-                          bool success =
-                              await AuthController.changePasswordWithValidation(
-                            currentPassword: currentPasswordC.text,
-                            newPassword: newPasswordC.text,
-                          );
-
-                          Get.back(); // Close loading dialog
-
-                          if (success) {
-                            // Clear fields on success
-                            currentPasswordC.clear();
-                            newPasswordC.clear();
-                            confirmPasswordC.clear();
-
-                            // Go back after delay
-                            Future.delayed(Duration(seconds: 1), () {
-                              Get.back();
-                            });
-                          }
-                          // Error handling is already done in the AuthController
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        elevation: 3,
-                      ),
-                      child: Text(
-                        "Ubah Password",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: 20),
-
-                  // Cancel Button
-                  Container(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () => Get.back(),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: Text(
-                        "Batal",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[400],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 40),
+                    _buildNewPasswordField(),
+                    const SizedBox(height: 20),
+                    _buildConfirmPasswordField(),
+                    const SizedBox(height: 40),
+                    _buildChangePasswordButton(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
@@ -302,33 +156,144 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon,
-      {String? errorText}) {
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: const BoxDecoration(
+            color: Color(0xFF1B1A47),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.lock_reset, size: 40, color: Colors.red),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Ubah Password Anda',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Masukkan password baru',
+          style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNewPasswordField() {
+    return Obx(
+      () => TextFormField(
+        controller: newPasswordC,
+        obscureText: !authController.isNewPasswordVisible.value,
+        style: const TextStyle(color: Colors.white),
+        decoration: _inputDecoration(
+          'Password Baru',
+          Icons.lock_clock_outlined,
+          authController.tooglenewPassword, // Fixed typo assumption
+          authController.isNewPasswordVisible.value,
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Password baru tidak boleh kosong';
+          }
+
+          return null;  
+        },
+      ),
+    );
+  }
+
+  Widget _buildConfirmPasswordField() {
+    return Obx(
+      () => TextFormField(
+        controller: confirmPasswordC,
+        obscureText: !authController.isConfirmPasswordVisible.value,
+        style: const TextStyle(color: Colors.white),
+        decoration: _inputDecoration(
+          'Konfirmasi Password Baru',
+          Icons.lock_person_outlined,
+          authController.toggleConfirmPassword,
+          authController.isConfirmPasswordVisible.value,
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Konfirmasi password tidak boleh kosong';
+          }
+          if (value != newPasswordC.text) {
+            return 'Password tidak cocok';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildChangePasswordButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _changePassword,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          elevation: 3,
+        ),
+        child: const Text(
+          'Ubah Password',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(
+    String hint,
+    IconData icon,
+    VoidCallback toggleVisibility,
+    bool isVisible,
+  ) {
     return InputDecoration(
       filled: true,
-      fillColor: Color(0xFF1B1A47),
+      fillColor: const Color(0xFF1B1A47),
       hintText: hint,
       hintStyle: TextStyle(color: Colors.grey[400]),
       prefixIcon: Icon(icon, color: Colors.grey[400]),
+      suffixIcon: IconButton(
+        icon: Icon(
+          isVisible ? Icons.visibility : Icons.visibility_off,
+          color: Colors.grey[400],
+        ),
+        onPressed: toggleVisibility,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.red, width: 2),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.red, width: 2),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.red, width: 2),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
-      errorText: errorText,
-      errorStyle: TextStyle(color: Colors.red),
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      errorStyle: const TextStyle(color: Colors.red),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
 }

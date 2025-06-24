@@ -1,7 +1,9 @@
+import 'package:dreamtix/core/theme/network.dart';
 import 'package:dreamtix/features/transaksi/controller/TransaksiController.dart';
 import 'package:dreamtix/features/transaksi/view/detail_transaksi_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:dreamtix/core/helper/date.dart' as date;
 
 class TransactionView extends StatelessWidget {
   final TransactionController controller = Get.put(TransactionController());
@@ -15,6 +17,8 @@ class TransactionView extends StatelessWidget {
             style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF0B0E21),
         elevation: 0,
+        centerTitle: true,
+        leading: Container(),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -54,7 +58,7 @@ class TransactionView extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              tx.imageUrl,
+                              NetworkImageAssets.bannerImage[0],
                               width: 80,
                               height: 50,
                               fit: BoxFit.cover,
@@ -109,7 +113,7 @@ class TransactionView extends StatelessWidget {
                         ],
                       ),
                       Text(
-                        tx.date,
+                        date.formatDate(tx.date),
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 12),
                       ),
@@ -118,8 +122,8 @@ class TransactionView extends StatelessWidget {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            Get.to(() =>
-                                TransactionDetailView(transaction: tx));
+                            Get.to(
+                                () => TransactionDetailView(transaction: tx));
                           },
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
@@ -127,8 +131,7 @@ class TransactionView extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8))),
                           child: const Text(
                             "Lihat Detail",
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 14),
+                            style: TextStyle(color: Colors.white, fontSize: 14),
                           ),
                         ),
                       )

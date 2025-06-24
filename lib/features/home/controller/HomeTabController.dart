@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 
 class HomeTabController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
-  
+
   // Observable variables
   var bannerImages = <String>[].obs;
   var events = <EventModel>[].obs;
@@ -17,20 +17,22 @@ class HomeTabController extends GetxController {
   var hasErrorEvents = false.obs;
   var errorMessageBanners = ''.obs;
   var errorMessageEvents = ''.obs;
-  
+
   // Banner carousel
   late PageController pageController;
   var currentPage = 0.obs;
   Timer? bannerTimer;
-  
+
   // Search
   var searchText = ''.obs;
   var filteredEvents = <EventModel>[].obs;
+  TextEditingController? searchController; // Tambahkan ini jika diperlukan
 
   @override
   void onInit() {
     super.onInit();
     pageController = PageController();
+    searchController = TextEditingController(); // Initialize search controller
     loadInitialData();
   }
 
@@ -38,6 +40,7 @@ class HomeTabController extends GetxController {
   void onClose() {
     bannerTimer?.cancel();
     pageController.dispose();
+    searchController?.dispose(); // Dispose search controller
     super.onClose();
   }
 
@@ -52,10 +55,10 @@ class HomeTabController extends GetxController {
     try {
       isLoadingBanners.value = true;
       hasErrorBanners.value = false;
-      
+
       final banners = await homeController.getBanners();
       bannerImages.value = banners.map((b) => b.image).toList();
-      
+
       if (bannerImages.isNotEmpty) {
         startBannerTimer();
       }
@@ -72,7 +75,7 @@ class HomeTabController extends GetxController {
     try {
       isLoadingEvents.value = true;
       hasErrorEvents.value = false;
-      
+
       final eventList = await homeController.getEvents();
       events.value = eventList;
       filteredEvents.value = eventList;
@@ -105,13 +108,44 @@ class HomeTabController extends GetxController {
     filterEvents();
   }
 
+  // Method baru untuk menangani pencarian ketika Enter ditekan
+  void performSearch(String query) {
+    searchText.value = query.trim();
+    homeController.updateSearch(query.trim());
+    filterEvents();
+    // Feedback untuk user bahwa pencarian dilakukan
+    if (query.trim().isNotEmpty) {
+      Get.showSnackbar(
+        GetSnackBar(
+          message: 'Mencari: "${query.trim()}"',
+          duration: Duration(seconds: 1),
+          backgroundColor: Colors.red.withOpacity(0.8),
+          snackPosition: SnackPosition.BOTTOM,
+          margin: EdgeInsets.all(16),
+          borderRadius: 8,
+        ),
+      );
+    }
+  }
+
+  // Method baru untuk menghapus pencarian
+  void clearSearch() {
+    searchText.value = '';
+    searchController?.clear();
+    homeController.updateSearch('');
+    filteredEvents.value = events; // Reset ke semua events
+  }
+
   void filterEvents() {
     if (searchText.value.isEmpty) {
       filteredEvents.value = events;
     } else {
       filteredEvents.value = events.where((event) {
-        return event.nameEvent.toLowerCase().contains(searchText.value.toLowerCase()) ||
-               event.artis.toLowerCase().contains(searchText.value.toLowerCase());
+        final searchLower = searchText.value.toLowerCase();
+        return event.nameEvent.toLowerCase().contains(searchLower) ||
+            event.artis.toLowerCase().contains(searchLower) ||
+            // Tambahan pencarian berdasarkan lokasi jika diperlukan
+            'seven dream city jember'.toLowerCase().contains(searchLower);
       }).toList();
     }
   }
@@ -121,7 +155,16 @@ class HomeTabController extends GetxController {
   }
 
   Future<void> refreshData() async {
-    await loadInitialData();
+    // Pastikan banner dan events dimuat ulang bersamaan
+    await Future.wait([
+      loadBanners(),
+      loadEvents(),
+    ]);
+
+    // Jika ada pencarian aktif, lakukan filter ulang
+    if (searchText.value.isNotEmpty) {
+      filterEvents();
+    }
   }
 
   void retryLoadBanners() {
@@ -133,6 +176,13 @@ class HomeTabController extends GetxController {
   }
 
   void navigateToDetail(EventModel event) {
+    print("EVENT ${event.artis}");
     Get.toNamed('/detail-event', arguments: event);
   }
+
+  // Method tambahan untuk mendapatkan status pencarian
+  bool get isSearching => searchText.value.isNotEmpty;
+
+  // Method untuk mendapatkan jumlah hasil pencarian
+  int get searchResultCount => filteredEvents.length;
 }

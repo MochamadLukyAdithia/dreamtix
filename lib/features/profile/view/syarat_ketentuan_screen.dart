@@ -42,7 +42,7 @@ class SyaratKetentuanScreen extends StatelessWidget {
               _buildSection(
                 title: "2. Deskripsi Layanan",
                 content:
-                    "DreamTix adalah platform digital yang menyediakan layanan pemesanan tiket bioskop online. Kami menyediakan informasi tentang film, jadwal tayang, harga tiket, dan memfasilitasi transaksi pembelian tiket bioskop.",
+                    "DreamTix adalah platform digital yang menyediakan layanan pemesanan tiket konser online. Kami menyediakan informasi tentang film, jadwal tayang, harga tiket, dan memfasilitasi transaksi pembelian tiket konser.",
               ),
 
               _buildSection(
@@ -54,13 +54,13 @@ class SyaratKetentuanScreen extends StatelessWidget {
               _buildSection(
                 title: "4. Pemesanan dan Pembayaran",
                 content:
-                    "• Semua pemesanan tiket bersifat final setelah pembayaran dikonfirmasi\n• Harga tiket dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya\n• Pembayaran harus dilakukan sesuai dengan metode yang tersedia\n• Kami tidak bertanggung jawab atas kegagalan pembayaran dari pihak ketiga\n• Bukti pembelian harus ditunjukkan saat memasuki bioskop",
+                    "• Semua pemesanan tiket bersifat final setelah pembayaran dikonfirmasi\n• Harga tiket dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya\n• Pembayaran harus dilakukan sesuai dengan metode yang tersedia\n• Kami tidak bertanggung jawab atas kegagalan pembayaran dari pihak ketiga\n• Bukti pembelian harus ditunjukkan saat memasuki konser",
               ),
 
               _buildSection(
                 title: "5. Kebijakan Pembatalan dan Pengembalian",
                 content:
-                    "• Tiket yang telah dibeli tidak dapat dibatalkan atau dikembalikan\n• Dalam kasus tertentu seperti pembatalan acara oleh bioskop, pengembalian dana akan diproses sesuai kebijakan masing-masing bioskop\n• Proses pengembalian dana dapat memakan waktu 3-14 hari kerja\n• Biaya administrasi mungkin akan dikenakan untuk proses pengembalian dana",
+                    "• Tiket yang telah dibeli tidak dapat dibatalkan atau dikembalikan\n• Dalam kasus tertentu seperti pembatalan acara oleh konser, pengembalian dana akan diproses sesuai kebijakan masing-masing konser\n• Proses pengembalian dana dapat memakan waktu 3-14 hari kerja\n• Biaya administrasi mungkin akan dikenakan untuk proses pengembalian dana",
               ),
 
               _buildSection(
@@ -84,19 +84,13 @@ class SyaratKetentuanScreen extends StatelessWidget {
               _buildSection(
                 title: "9. Batasan Tanggung Jawab",
                 content:
-                    "• DreamTix tidak bertanggung jawab atas kerugian langsung atau tidak langsung\n• Kami tidak menjamin ketersediaan layanan 100% tanpa gangguan\n• Tanggung jawab kami terbatas pada nilai transaksi yang dilakukan\n• Kami tidak bertanggung jawab atas tindakan atau kelalaian pihak bioskop mitra",
+                    "• DreamTix tidak bertanggung jawab atas kerugian langsung atau tidak langsung\n• Kami tidak menjamin ketersediaan layanan 100% tanpa gangguan\n• Tanggung jawab kami terbatas pada nilai transaksi yang dilakukan\n• Kami tidak bertanggung jawab atas tindakan atau kelalaian pihak konser mitra",
               ),
 
               _buildSection(
                 title: "10. Perubahan Syarat dan Ketentuan",
                 content:
                     "• Kami berhak mengubah syarat dan ketentuan ini sewaktu-waktu\n• Perubahan akan diberitahukan melalui aplikasi atau email\n• Penggunaan layanan setelah perubahan berarti Anda menyetujui syarat yang baru\n• Disarankan untuk memeriksa syarat dan ketentuan secara berkala",
-              ),
-
-              _buildSection(
-                title: "11. Penyelesaian Sengketa",
-                content:
-                    "• Segala sengketa akan diselesaikan melalui musyawarah mufakat\n• Jika musyawarah tidak tercapai, sengketa akan diselesaikan melalui arbitrase\n• Hukum yang berlaku adalah hukum Republik Indonesia\n• Pengadilan yang berwenang adalah Pengadilan Negeri Jakarta Selatan",
               ),
 
               const SizedBox(height: 30),

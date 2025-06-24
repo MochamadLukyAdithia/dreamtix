@@ -13,7 +13,7 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar( 
         title: Text("Google Maps"),
       ),
       body: GoogleMap(

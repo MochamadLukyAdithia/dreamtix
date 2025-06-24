@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:dreamtix/core/theme/network.dart';
 import 'package:dreamtix/features/auth/model/UserModel.dart';
 import 'package:dreamtix/features/transaksi/model/TransaksiModel.dart';
 
@@ -7,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:dreamtix/core/const/apiUrl.dart' as apiUrl;
 
 class TransactionController extends GetxController {
   var searchQuery = ''.obs;
@@ -22,6 +22,7 @@ class TransactionController extends GetxController {
 
   final user = Rxn<Usermodel>();
   final isLoading = false.obs;
+
   /// Format tanggal ISO ke format lokal
   String _formatDate(String isoDate) {
     try {
@@ -47,7 +48,7 @@ class TransactionController extends GetxController {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:3000/api/transaksi'),
+        Uri.parse('${apiUrl.apiUrl}/transaksi'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

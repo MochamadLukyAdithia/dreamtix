@@ -1,4 +1,5 @@
 import 'package:dreamtix/core/theme/network.dart';
+import 'package:dreamtix/features/home/model/event_model.dart';
 import 'package:dreamtix/features/transaksi/model/DetailModel.dart';
 
 class TransaksiModel {
@@ -32,16 +33,17 @@ class TransaksiModel {
           .toList(),
     );
   }
-
   String get title => detailPemesanan[0].tiket.category.nama;
   String get metode => transaksis[0].metodePembayaran.nama;
   String get status => transaksis[0].status;
   String get date => tanggalFormatted;
   String get id => idPemesanan.toString();
-  String get imageUrl => NetworkImageAssets.bannerImage[0]; // default image
+  String get imageUrl => detailPemesanan[0].tiket.event.image;
+  String get nama_event => detailPemesanan[0].tiket.event.nameEvent;
+  String get waktu_event => detailPemesanan[0].tiket.event.waktu;
+  String get id_tiket => detailPemesanan[0].tiket.idTiket.toString();
+  String get jumlah => detailPemesanan[0].quantity.toString();
 }
-
-
 
 class Transaksi {
   final int idMetode;

@@ -46,7 +46,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
                   Container(
                     margin: EdgeInsets.only(bottom: 50),
                     child: Column(
@@ -76,8 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-
-                  // Username Field
                   TextField(
                     controller: usernameC,
                     style: TextStyle(color: Colors.white),
@@ -86,11 +83,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       Icons.person_outline,
                       errorText: usernameError,
                     ),
-                    // Remove onChanged validation
                   ),
                   SizedBox(height: 20),
-
-                  // Password Field
                   Obx(() => TextField(
                         controller: passwordC,
                         obscureText: !authController.isPasswordVisible.value,
@@ -110,42 +104,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: authController.togglePassword,
                           ),
                         ),
-                        // Remove onChanged validation
                       )),
-
-                  // Forgot Password & Change Password Row
                   Container(
                     width: double.infinity,
                     margin: EdgeInsets.only(top: 12),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           onPressed: () {
-                            // Navigate to Change Password
                             Get.to(() => ChangePasswordScreen());
-                          },
-                          style: TextButton.styleFrom(
-                            alignment: Alignment.centerLeft,
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Text(
-                            'Ubah Password',
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Get.snackbar(
-                              'Info',
-                              'Fitur lupa password akan segera tersedia',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.blue.withOpacity(0.8),
-                              colorText: Colors.white,
-                            );
                           },
                           style: TextButton.styleFrom(
                             alignment: Alignment.centerRight,
@@ -162,17 +130,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-
                   SizedBox(height: 30),
-
-                  // Login Button
                   Container(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        // Validate inputs only when login button is pressed
                         validateInputs();
-                        
+
                         if (usernameError == null && passwordError == null) {
                           Usermodel user = Usermodel(
                             username: usernameC.text,
@@ -202,10 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   SizedBox(height: 30),
-
-                  // Register Link
                   Center(
                     child: TextButton(
                       onPressed: () => Get.offNamed(AppRoute.register),

@@ -1,6 +1,8 @@
 import 'package:dreamtix/features/auth/view/login_screen.dart';
 import 'package:dreamtix/features/auth/view/register_screen.dart';
+import 'package:dreamtix/features/home/model/event_model.dart';
 import 'package:dreamtix/features/home/model/tiket_model.dart';
+import 'package:dreamtix/features/home/view/bayar_tiket.dart';
 import 'package:dreamtix/features/home/view/beli_tiket_view.dart';
 import 'package:dreamtix/features/home/view/detail_view_screen.dart';
 import 'package:dreamtix/features/home/view/google_maps_screen.dart';
@@ -12,6 +14,8 @@ import 'package:dreamtix/features/profile/view/tentang_dreamtix_screen.dart';
 import 'package:dreamtix/features/profile/view/ubah_password_screen.dart';
 import 'package:dreamtix/features/profile/view/ubah_profile_screen.dart';
 import 'package:dreamtix/features/splash/view/splash_screen.dart';
+import 'package:dreamtix/features/transaksi/model/TransaksiModel.dart';
+import 'package:dreamtix/features/transaksi/view/qr_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:get/instance_manager.dart';
@@ -32,10 +36,14 @@ class AppRoute {
   static const String membeli = '/membeli';
   static const String gmaps = '/gmaps';
   static const String ubahpassword = '/ubah-password';
+  static const String qr = '/qr';
+  static const String bayarTiket = '/bayar-tiket';
 }
 
 class AppPages {
   static final ticket = Get.arguments as Tiket;
+  static final transaction = Get.arguments as TransaksiModel;
+  static final total = Get.arguments as int;
   static final INITIAL = AppRoute.splash;
   static final routes = [
     GetPage(
@@ -51,14 +59,31 @@ class AppPages {
     ),
     GetPage(
       name: AppRoute.beliTiket,
-      page: () => BeliTiketScreen(ticket : ticket),
+      page: () => BeliTiketScreen(ticket: ticket),
+      transition: Transition.fadeIn,
+      transitionDuration: Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    ),
+    GetPage(
+      name: AppRoute.bayarTiket,
+      page: () => BayarTiketScreen(total: total),
+      transition: Transition.fadeIn,
+      transitionDuration: Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    ),
+    GetPage(
+      name: AppRoute.qr,
+      page: () => QrScreen(tiket: transaction),
       transition: Transition.fadeIn,
       transitionDuration: Duration(milliseconds: 200),
       curve: Curves.easeInOut,
     ),
     GetPage(
       name: AppRoute.detailEvent,
-      page: () => DetailEventScreen(),
+      page: () {
+        final event = Get.arguments as EventModel;
+        return DetailEventScreen(event: event);
+      },
       transition: Transition.fadeIn,
       transitionDuration: Duration(milliseconds: 200),
       curve: Curves.easeInOut,

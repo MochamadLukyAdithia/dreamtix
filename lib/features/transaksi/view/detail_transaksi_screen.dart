@@ -1,6 +1,9 @@
 import 'package:dreamtix/features/transaksi/model/TransaksiModel.dart';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:dreamtix/core/helper/date.dart' as date;
 
 class TransactionDetailView extends StatelessWidget {
   final TransaksiModel transaction;
@@ -28,7 +31,7 @@ class TransactionDetailView extends StatelessWidget {
               child: Image.network(
                 transaction.imageUrl,
                 width: double.infinity,
-                height: 150,
+                height: 200,
                 fit: BoxFit.cover,
               ),
             ),
@@ -46,22 +49,24 @@ class TransactionDetailView extends StatelessWidget {
               style: const TextStyle(color: Colors.blueAccent, fontSize: 14),
             ),
             const Divider(color: Colors.white38, height: 30),
-            buildRow("Tanggal Transaksi", transaction.date),
+            buildRow("Tanggal Transaksi", date.formatDate(transaction.date)),
             buildRow("ID Transaksi", transaction.id),
             buildRow("Metode Pembayaran", transaction.metode),
             buildRow("Jumlah Tiket",
                 transaction.detailPemesanan[0].quantity.toString()),
             buildRow("Total Pembayaran",
                 "Rp ${transaction.detailPemesanan[0].total}"),
+            buildRow("Nama Event", "${transaction.nama_event}"),
+            buildRow("Waktu", "${transaction.waktu_event}"),
             const Spacer(),
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => {Get.toNamed("qr", arguments: transaction)},
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text(
-                  "Kembali",
+                  "Lihat Tiket",
                   style: TextStyle(color: Colors.white),
                 ),
               ),
